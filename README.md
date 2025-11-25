@@ -150,6 +150,134 @@ badgerMeal/
 - Mock data is available as a fallback if scraping fails
 - The UI is built with vanilla JavaScript and responsive CSS
 
+## Deployment
+
+### Docker Deployment
+
+#### Local Docker Development
+
+1. Build and run with Docker Compose:
+```bash
+docker-compose up --build
+```
+
+2. Access the application at `http://localhost:8080`
+
+#### Manual Docker Commands
+
+1. Build the Docker image:
+```bash
+docker build -t badgermeal .
+```
+
+2. Run the container:
+```bash
+docker run -p 8080:8080 -e GEMINI_API_KEY=your_api_key badgermeal
+```
+
+3. Or use your `.env` file:
+```bash
+docker run -p 8080:8080 --env-file .env badgermeal
+```
+
+### Google Cloud Run Deployment
+
+#### Prerequisites
+- Google Cloud account
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed
+- Project created in Google Cloud Console
+
+#### Quick Deploy (Recommended)
+
+1. Install and initialize gcloud CLI:
+```bash
+gcloud init
+```
+
+2. Set your project:
+```bash
+gcloud config set project YOUR_PROJECT_ID
+```
+
+3. Deploy to Cloud Run:
+```bash
+gcloud run deploy badgermeal \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars GEMINI_API_KEY=your_api_key
+```
+
+4. The deployment will automatically:
+   - Build your container image
+   - Push it to Google Container Registry
+   - Deploy to Cloud Run
+   - Provide you with a live URL
+
+#### Deploy with Cloud Build (Advanced)
+
+1. Enable required APIs:
+```bash
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com
+```
+
+2. Set your API key as a secret:
+```bash
+echo -n "your_api_key" | gcloud secrets create gemini-api-key --data-file=-
+```
+
+3. Deploy using Cloud Build:
+```bash
+gcloud builds submit --config cloudbuild.yaml
+```
+
+4. Set the secret in Cloud Run:
+```bash
+gcloud run services update badgermeal \
+  --update-secrets=GEMINI_API_KEY=gemini-api-key:latest \
+  --region us-central1
+```
+
+#### Managing Your Cloud Run Service
+
+View service details:
+```bash
+gcloud run services describe badgermeal --region us-central1
+```
+
+View logs:
+```bash
+gcloud run services logs read badgermeal --region us-central1
+```
+
+Update environment variables:
+```bash
+gcloud run services update badgermeal \
+  --set-env-vars GEMINI_API_KEY=new_api_key \
+  --region us-central1
+```
+
+Delete the service:
+```bash
+gcloud run services delete badgermeal --region us-central1
+```
+
+#### Cost Considerations
+
+Google Cloud Run offers:
+- **Free tier**: 2 million requests per month
+- **Pay-per-use**: Only charged when your app is processing requests
+- **Auto-scaling**: Scales to zero when not in use
+
+### Other Docker-Compatible Platforms
+
+The Docker configuration also works with:
+- **AWS Elastic Container Service (ECS)**
+- **Azure Container Instances**
+- **DigitalOcean App Platform**
+- **Fly.io**
+- **Railway**
+
 ## Limitations
 
 - Menu data availability depends on UW-Madison dining services' website uptime
